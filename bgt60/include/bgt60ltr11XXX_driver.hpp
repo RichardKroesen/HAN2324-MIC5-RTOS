@@ -24,25 +24,24 @@
 #ifndef BGT60LTR11XXX_DRIVER_HPP
 #define BGT60LTR11XXX_DRIVER_HPP
 
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include <task.h>
+
 #include <vector>
 #include <type_traits>  //for std::underlying_type
 #include <utility>      // For std::forward
 #include "hardware/spi.h"
 #include "pico/stdlib.h"
-#include "bgt60ltr11XXX_regs.hpp"
-#include "bgt60ltr11XXX_config.hpp"
 
-#define SPI_SCK     6  // SPI Clock
-#define SPI_MOSI    3  // Master Out Slave In (MOSI)
-#define SPI_MISO    4  // Master In Slave Out (MISO)
-#define SPI_CS      5  // Chip Select (CS)
-#define SPI_RS      0  // Reset Line
+#include "bgt60ltr11XXX_regs.hpp"
+#include "board_defines.h"
 
 namespace BGT60 {
 
 class BGT60_DRIVER {
 public:
-    BGT60_DRIVER(uint8_t clk_pin, uint8_t mosi_pin, uint8_t miso_pin, uint8_t select, uint8_t reset);
+    BGT60_DRIVER();
     ~BGT60_DRIVER() {}
 
     static void initCwMode();
@@ -78,11 +77,11 @@ private:
     const static inline uint16_t INIT_TIMEOUT   = 0x0800; // In base10: 2048
     static inline uint16_t current_status_GSR0  = 0x0000;
 
-    const uint8_t spi_clk_pin;
-    const uint8_t spi_mosi_pin; 
-    const uint8_t spi_miso_pin; 
-    const uint8_t spi_select; 
-    const uint8_t rs_line;
+    const static inline uint8_t spi_clk_pin     = SPI_SCK_RADAR;
+    const static inline uint8_t spi_mosi_pin    = SPI_MOSI_RADAR; 
+    const static inline uint8_t spi_miso_pin    = SPI_MISO_RADAR; 
+    const static inline uint8_t spi_select_pin  = SPI_CS_RADAR; 
+    const static inline uint8_t rs_line         = SPI_RS_RADAR;
 
     /* CLASS FUNCTIONS: */
     // Initialize SPI inteface: Reference User Manual: 3.1.1 of BGT60LTR11AIP.

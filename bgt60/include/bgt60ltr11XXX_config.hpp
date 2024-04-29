@@ -1,8 +1,0 @@
-#ifndef BGT60LTR11XXX_CONFIG_HPP
-#define BGT60LTR11XXX_CONFIG_HPP
-
-#ifndef SPI_PORT
-#define SPI_PORT spi0
-#endif
-
-#endif // BGT60LTR11XXX_CONFIG_HPP

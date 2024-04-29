@@ -51,7 +51,7 @@ if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
     if (NOT TARGET pico_cyw43_arch)
         message("Skipping build as support is not available")
     else ()
-        add_executable(MIC5_ASSIGNMENT "src/main.c")
+        add_executable(MIC5_ASSIGNMENT "src/main.cpp")
         # enable usb output, disable uart output
         pico_enable_stdio_usb(MIC5_ASSIGNMENT 1)
         pico_enable_stdio_uart(MIC5_ASSIGNMENT 0)
@@ -94,6 +94,7 @@ if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
         target_link_libraries(ui lvgl)
 
         target_link_libraries(MIC5_ASSIGNMENT pico_cyw43_arch_lwip_poll
+            BGT60LTR11XXX
             pico_stdlib
             pico_lwip_mbedtls
             pico_mbedtls

@@ -135,7 +135,7 @@ static void disp_init(void)
     gpio_set_dir(DISPLAY_RST, GPIO_OUT);
     gpio_set_dir(DISPLAY_CS, GPIO_OUT);
     gpio_put(DISPLAY_CS, 1);
-    spi_init(spi0, GC9A01_SPI_BAUD);
+    spi_init(spi0, SPI_BAUD_RATE_DISPLAY);
     GC9A01_init();
 }
 volatile bool disp_flush_enabled = true;

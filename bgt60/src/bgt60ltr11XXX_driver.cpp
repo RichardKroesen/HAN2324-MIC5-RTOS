@@ -2,8 +2,7 @@
 
 namespace BGT60 {
 
-    BGT60_DRIVER::BGT60_DRIVER(uint8_t clk_pin, uint8_t mosi_pin, uint8_t miso_pin, uint8_t select, uint8_t reset)
-        : spi_clk_pin(clk_pin), spi_mosi_pin(mosi_pin), spi_miso_pin(miso_pin), spi_select(select), rs_line(reset) {
+    BGT60_DRIVER::BGT60_DRIVER() {
         initialize_spi_interface();
     }
 
@@ -93,6 +92,7 @@ namespace BGT60 {
             if ((init_flag == 1) && (reg0_done == 0)) {
                 break; // Stop Pooling
             }
+            vTaskDelay(pdMS_TO_TICKS(20)); 
         }
     }
 
@@ -171,33 +171,31 @@ namespace BGT60 {
     // Initialize SPI inteface: Reference User Manual: 3.1.1 of BGT60LTR11AIP.
     void BGT60_DRIVER::initialize_spi_interface() {
         const uint8_t dataFieldSize = spi_config.bitsPerTransfer;
-        const uint32_t busFrequency = spi_config.clkFrequencyMHz*1'000'000;
-        
-        spi_init(SPI_PORT, busFrequency);
-        spi_set_format(SPI_PORT, 
+
+        spi_init(SPI_INST_RADAR, SPI_BAUD_RATE_RADAR);
+        spi_set_format(SPI_INST_RADAR, 
             dataFieldSize, 
             SPI_CPOL_0,         // Clock low in idle.
             SPI_CPHA_0,         // CLock phase rising. 
             SPI_MSB_FIRST
         );
 
-        gpio_set_function(SPI_MISO, GPIO_FUNC_SPI);
-        gpio_set_function(SPI_SCK, GPIO_FUNC_SPI);
-        gpio_set_function(SPI_MOSI, GPIO_FUNC_SPI);
+        gpio_set_function(spi_miso_pin, GPIO_FUNC_SPI);
+        gpio_set_function(spi_clk_pin, GPIO_FUNC_SPI);
+        gpio_set_function(spi_mosi_pin, GPIO_FUNC_SPI);
 
         // Initialize CS pin
-        gpio_init(SPI_CS);
-        gpio_set_dir(SPI_CS, GPIO_OUT);
-        gpio_put(SPI_CS, 1);
+        gpio_init(spi_select_pin);
+        gpio_set_dir(spi_select_pin, GPIO_OUT);
+        gpio_put(spi_select_pin, 1);
 
         // Reset Bus
-        gpio_init(SPI_RS);
-        gpio_set_dir(SPI_RS, GPIO_OUT);
-        gpio_put(SPI_RS, 1);
-        sleep_ms(50);
-        gpio_put(SPI_RS, 0);
-        sleep_ms(50);
-        gpio_put(SPI_RS, 1);
+        gpio_init(rs_line);
+        gpio_set_dir(rs_line, GPIO_OUT);
+        vTaskDelay(pdMS_TO_TICKS(50)); 
+        gpio_put(SPI_RS_RADAR, 0);
+        vTaskDelay(pdMS_TO_TICKS(50)); 
+        gpio_put(SPI_RS_RADAR, 1);
     }
 
     void BGT60_DRIVER::spi_write_register(const uint8_t reg, const uint16_t value) {
@@ -210,9 +208,9 @@ namespace BGT60 {
         data_to_send[1] = (value >> BYTE) & BYTE_MASK; // MSB of the value to write
         data_to_send[2] = value & BYTE_MASK;        // LSB of the value to write
 
-        gpio_put(SPI_CS, 0);
-        spi_write_blocking(SPI_PORT, data_to_send, 3);
-        gpio_put(SPI_CS, BIT_ONE);
+        gpio_put(SPI_CS_RADAR, 0);
+        spi_write_blocking(SPI_INST_RADAR, data_to_send, 3);
+        gpio_put(SPI_CS_RADAR, BIT_ONE);
     }
 
     const uint16_t BGT60_DRIVER::spi_read_register(const uint8_t reg) {
@@ -221,11 +219,11 @@ namespace BGT60 {
         const uint8_t writeBuffer[3] = {spiAddr, 0, 0};
         uint8_t received_data[3] = {0, 0, 0};
 
-        gpio_put(SPI_CS, 0);
-        spi_write_read_blocking(SPI_PORT, writeBuffer, received_data, 3);
-        gpio_put(SPI_CS, 1); 
+        gpio_put(SPI_CS_RADAR, 0);
+        spi_write_read_blocking(SPI_INST_RADAR, writeBuffer, received_data, 3);
+        gpio_put(SPI_CS_RADAR, 1); 
 
-        current_status_GSR0 =  received_data[0];
+        current_status_GSR0 = received_data[0];
 
         return (static_cast<uint16_t>((received_data[1]) << BYTE) | static_cast<uint16_t>(received_data[2]));
     }
