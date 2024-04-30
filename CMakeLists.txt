@@ -49,6 +49,7 @@ add_subdirectory(bgt60)
 add_subdirectory(motor_driver)
 add_subdirectory(speaker)
 add_subdirectory(samples)
+add_subdirectory(async_uart)
 
 if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
     if (NOT TARGET pico_cyw43_arch)
@@ -64,6 +65,7 @@ if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
             ${CMAKE_CURRENT_LIST_DIR}/bgt60
             ${CMAKE_CURRENT_LIST_DIR}/motor_driver
             ${CMAKE_CURRENT_LIST_DIR}/speaker
+            ${CMAKE_CURRENT_LIST_DIR}/async_uart
         )
 
         # Select the heap port.  values between 1-4 will pick a heap.
@@ -102,6 +104,7 @@ if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
             BGT60LTR11XXX
             STEPMOTOR_DRIVER
             SPEAKER_CONTROLLER
+            ASYNC_UART
             audio_sample
             pico_stdlib
             pico_lwip_mbedtls

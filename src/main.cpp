@@ -18,6 +18,7 @@
 #include <audio_buffer.hpp>
 #include <speaker_controller.hpp>
 #include <sample.h>
+#include <UART_streamer.hpp>
 
 TaskHandle_t Task1Handle = NULL;
 
@@ -115,6 +116,22 @@ void taskNotify(void *taskvParameters) {
     }
 }
 
+void mainTask(void *params) {
+    SERIAL::uart_buffer_t rxBuffer;
+    static SERIAL::UART_RTOS_Driver driver(115200, 16, 17);
+
+    while (1) {
+        // Check for received UART data without blocking
+        if (driver.uart_check_rx_non_blocking(&rxBuffer, sizeof(rxBuffer), pdMS_TO_TICKS(100))) {
+            // Process received UART data
+            printf("Received UART data: %s\n", rxBuffer.data);
+        } else {
+            // Yield to other tasks
+            taskYIELD();
+        }
+    }
+}
+
 int main() {
     stdio_init_all();
 
@@ -125,32 +142,35 @@ int main() {
 
     printf("\tProgram Start\n");
 
-    BaseType_t xReturned[4];
+    BaseType_t xReturned[5];
 
     xReturned[0] = xTaskCreate(display_task, "DisplayTask", 850, NULL, 3, NULL);
     xReturned[1] = xTaskCreate(radarReading_task, "RadarReadingTask", 400, NULL, 2, NULL);
     xReturned[2] = xTaskCreate(stepMotor_task, "MotorTask", 150, NULL, 1, NULL);
     xReturned[3] = xTaskCreate(AudioTask, "AudioTask", 400, NULL, 3, NULL);
+    xReturned[4] = xTaskCreate(mainTask, "MainTask", 200, NULL, 1, NULL); 
 
     // xTaskCreate(taskNotify, "Task1", 200, NULL, 1, &Task1Handle);
 
-    bool flag = false;
-    for (int i = 0; i < 4; i++) {
-        if (xReturned[i] != pdPASS) {
-            printf("Task %d  creation failed.\n", i);
-            flag = false;
-            break;
-        } else {
-            flag = true;
-        }
-    }
+    // bool flag = false;
+    // for (int i = 0; i < 5; i++) {
+    //     if (xReturned[i] != pdPASS) {
+    //         printf("Task %d  creation failed.\n", i);
+    //         flag = false;
+    //         break;
+    //     } else {
+    //         flag = true;
+    //     }
+    // }
 
-    if (flag) {
-        printf("Scheduling Started.\n\n");
-        vTaskStartScheduler();
-    } else {
-        printf("Tasks are not scheduled.\n");
-    }
+    vTaskStartScheduler();
+
+    // if (flag) {
+    //     printf("Scheduling Started.\n\n");
+    //     vTaskStartScheduler();
+    // } else {
+    //     printf("Tasks are not scheduled.\n");
+    // }
     
     for (;;) {
         ;
