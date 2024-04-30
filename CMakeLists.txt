@@ -47,6 +47,8 @@ add_compile_options(-Wall
 
 add_subdirectory(bgt60)
 add_subdirectory(motor_driver)
+add_subdirectory(speaker)
+add_subdirectory(samples)
 
 if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
     if (NOT TARGET pico_cyw43_arch)
@@ -61,6 +63,7 @@ if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
             ${CMAKE_CURRENT_LIST_DIR}/src
             ${CMAKE_CURRENT_LIST_DIR}/bgt60
             ${CMAKE_CURRENT_LIST_DIR}/motor_driver
+            ${CMAKE_CURRENT_LIST_DIR}/speaker
         )
 
         # Select the heap port.  values between 1-4 will pick a heap.
@@ -98,6 +101,8 @@ if (PICO_CYW43_SUPPORTED) # set by BOARD=pico-w
         target_link_libraries(MIC5_ASSIGNMENT pico_cyw43_arch_lwip_poll
             BGT60LTR11XXX
             STEPMOTOR_DRIVER
+            SPEAKER_CONTROLLER
+            audio_sample
             pico_stdlib
             pico_lwip_mbedtls
             pico_mbedtls

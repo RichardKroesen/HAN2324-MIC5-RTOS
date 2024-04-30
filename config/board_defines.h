@@ -26,4 +26,7 @@
 #define DIR_MOTOR_PIN       9
 #define EN_MOTOR_PIN        10
 
+/* AUDIO CONTROL PINS */
+#define AUDIO_PIN           11
+
 #endif

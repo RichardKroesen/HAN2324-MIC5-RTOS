@@ -15,6 +15,9 @@
 
 #include <bgt60ltr11XXX_driver.hpp>
 #include <step_motor.hpp>
+#include <audio_buffer.hpp>
+#include <speaker_controller.hpp>
+#include <sample.h>
 
 TaskHandle_t Task1Handle = NULL;
 
@@ -84,6 +87,24 @@ void stepMotor_task(void *Pvarg) {
     }
 }
 
+void AudioTask(void *pvParameters) {
+    vTaskDelay(5000/portTICK_PERIOD_MS);
+    AUDIO::AudioBuffer buffer(WAV_DATA, WAV_DATA_LENGTH);
+
+    uint8_t audioPin = AUDIO_PIN; 
+    uint32_t pwmWrapValue = 255;  
+    float clkDivValue = 5.55f; 
+
+    AUDIO::SpeakerController speakerController(audioPin, pwmWrapValue, clkDivValue, buffer);
+
+    while (true) {
+        speakerController.start();
+        vTaskDelay(5000/portTICK_PERIOD_MS);
+        speakerController.stop();
+        vTaskDelay(10000/portTICK_PERIOD_MS);
+    }
+};
+
 void taskNotify(void *taskvParameters) {
     uint32_t notificationValue;
 
@@ -97,19 +118,39 @@ void taskNotify(void *taskvParameters) {
 int main() {
     stdio_init_all();
 
-    printf("waiting for usb host");
     while (! tud_cdc_connected()) {
         printf(".");
         sleep_ms(500);
     }
 
-    xTaskCreate(display_task, "display_task", 850, NULL, 3, NULL);
-    xTaskCreate(radarReading_task, "RadarReading", 400, NULL, 2, NULL);
-    xTaskCreate(stepMotor_task, "led_task", 150, NULL, 3, NULL);
+    printf("\tProgram Start\n");
+
+    BaseType_t xReturned[4];
+
+    xReturned[0] = xTaskCreate(display_task, "DisplayTask", 850, NULL, 3, NULL);
+    xReturned[1] = xTaskCreate(radarReading_task, "RadarReadingTask", 400, NULL, 2, NULL);
+    xReturned[2] = xTaskCreate(stepMotor_task, "MotorTask", 150, NULL, 1, NULL);
+    xReturned[3] = xTaskCreate(AudioTask, "AudioTask", 400, NULL, 3, NULL);
 
     // xTaskCreate(taskNotify, "Task1", 200, NULL, 1, &Task1Handle);
 
-    vTaskStartScheduler();
+    bool flag = false;
+    for (int i = 0; i < 4; i++) {
+        if (xReturned[i] != pdPASS) {
+            printf("Task %d  creation failed.\n", i);
+            flag = false;
+            break;
+        } else {
+            flag = true;
+        }
+    }
+
+    if (flag) {
+        printf("Scheduling Started.\n\n");
+        vTaskStartScheduler();
+    } else {
+        printf("Tasks are not scheduled.\n");
+    }
     
     for (;;) {
         ;

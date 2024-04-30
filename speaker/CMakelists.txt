@@ -1,0 +1,11 @@
+add_library(SPEAKER_CONTROLLER INTERFACE)
+
+target_include_directories(SPEAKER_CONTROLLER INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/
+)
+
+target_link_libraries(SPEAKER_CONTROLLER INTERFACE   
+    pico_stdlib  
+    hardware_pwm
+    hardware_irq    
+)
