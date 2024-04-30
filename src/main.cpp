@@ -11,7 +11,10 @@
 #include "lv_port_disp.h"
 #include "ui.h"
 
+#include "board_defines.h"
+
 #include <bgt60ltr11XXX_driver.hpp>
+#include <step_motor.hpp>
 
 TaskHandle_t Task1Handle = NULL;
 
@@ -37,7 +40,6 @@ void display_task(void *Pvarg) {
 
 void radarReading_task(void *taskvParameters) {
     BGT60::BGT60_DRIVER radarDriver{};
-    //UART_STREAMER::UartStreamer streamer{};
 
     radarDriver.initCwMode();
 
@@ -58,7 +60,27 @@ void radarReading_task(void *taskvParameters) {
         //     xTaskNotify(Task1Handle, 0x01, eSetValueWithOverwrite);
         // }
 
-        vTaskDelay(150/portTICK_PERIOD_MS);
+        vTaskDelay(200/portTICK_PERIOD_MS);
+    }
+}
+
+void stepMotor_task(void *Pvarg) {
+    static MOTOR::StepMotorDriver motor{STEP_MOTOR_PIN,DIR_MOTOR_PIN,EN_MOTOR_PIN}; /// (0, 1);
+    motor.initPulseGenerator(0, 30, 100);
+    motor.rotateAngle(MOTOR::DefaultAngles::ANGLE_90);
+    gpio_init( 25 );
+    gpio_set_dir( 25, GPIO_OUT );
+    
+    while (true)
+    {
+        uint32_t speed = motor.getSpeed_rpm();
+        printf("Speed: %d deg/sec.\n", speed);
+        gpio_put(25, 1);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
+        motor.rotateAngle(MOTOR::DefaultAngles::ANGLE_90);
+        gpio_put(25, 0);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
+        motor.rotateAngle(MOTOR::DefaultAngles::ANGLE_360);
     }
 }
 
@@ -81,8 +103,10 @@ int main() {
         sleep_ms(500);
     }
 
-    xTaskCreate(display_task, "display_task", 750, NULL, 3, NULL);
+    xTaskCreate(display_task, "display_task", 850, NULL, 3, NULL);
     xTaskCreate(radarReading_task, "RadarReading", 400, NULL, 2, NULL);
+    xTaskCreate(stepMotor_task, "led_task", 150, NULL, 3, NULL);
+
     // xTaskCreate(taskNotify, "Task1", 200, NULL, 1, &Task1Handle);
 
     vTaskStartScheduler();
