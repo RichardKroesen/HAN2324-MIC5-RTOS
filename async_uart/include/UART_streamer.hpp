@@ -70,6 +70,7 @@ public:
             }
             uart_putc_raw(uart_port, *data++);
         }
+        
         uart_set_irq_enables(uart_port, true, true);
         taskYIELD();
         xSemaphoreTake(uart_tx_done_sem, portMAX_DELAY); // Wait for completion.

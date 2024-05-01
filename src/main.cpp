@@ -22,6 +22,8 @@
 
 TaskHandle_t Task1Handle = NULL;
 
+static SERIAL::UART_RTOS_Driver driver(115200, 16, 17);
+
 void error_handler() {
     cyw43_arch_disable_sta_mode();
     cyw43_arch_deinit();
@@ -118,7 +120,6 @@ void taskNotify(void *taskvParameters) {
 
 void mainTask(void *params) {
     SERIAL::uart_buffer_t rxBuffer;
-    static SERIAL::UART_RTOS_Driver driver(115200, 16, 17);
 
     while (1) {
         // Check for received UART data without blocking
@@ -132,23 +133,35 @@ void mainTask(void *params) {
     }
 }
 
+void uart_send_task(void *params) {
+    const char* message = "Hello, UART World!\n";
+    driver.uart_send_non_blocking(message);
+
+    while (1) {
+        driver.uart_send_non_blocking(message); // Non-blocking send
+        vTaskDelay(pdMS_TO_TICKS(10000));
+    }
+}
+
 int main() {
     stdio_init_all();
 
-    while (! tud_cdc_connected()) {
-        printf(".");
-        sleep_ms(500);
-    }
+    // printf("\tProgram Start\n");
+    // while (! tud_cdc_connected()) {
+    //     printf(".");
+    //     sleep_ms(500);
+    // }
 
     printf("\tProgram Start\n");
 
-    BaseType_t xReturned[5];
+    BaseType_t xReturned[6];
 
-    xReturned[0] = xTaskCreate(display_task, "DisplayTask", 850, NULL, 3, NULL);
+    xReturned[0] = xTaskCreate(display_task, "DisplayTask", 900, NULL, 3, NULL);
     xReturned[1] = xTaskCreate(radarReading_task, "RadarReadingTask", 400, NULL, 2, NULL);
     xReturned[2] = xTaskCreate(stepMotor_task, "MotorTask", 150, NULL, 1, NULL);
     xReturned[3] = xTaskCreate(AudioTask, "AudioTask", 400, NULL, 3, NULL);
     xReturned[4] = xTaskCreate(mainTask, "MainTask", 200, NULL, 1, NULL); 
+    xReturned[5] = xTaskCreate(uart_send_task, "UARTSendTask", 200, NULL, 2, NULL);
 
     // xTaskCreate(taskNotify, "Task1", 200, NULL, 1, &Task1Handle);
 

@@ -1,10 +1,10 @@
-# MIC5 Assignment 
+# MIC5 Assignment - Embedded RTOS
 Project based on the previous display fw + motor on pico w mcu
 
 # Roadmap
 Here is a list of upcoming actions to take: 
 - [x] Add Stepper Motor Driver Example.
-- [ ] Add UART Asynchrounous Communication Driver.
+- [x] Add UART Asynchrounous Communication Driver.
 - [x] Add PWM Audio Output Controller.
 - [ ] Add Overall System Driver Class.  
 
