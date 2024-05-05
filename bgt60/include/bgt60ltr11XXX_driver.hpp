@@ -24,7 +24,6 @@
 #ifndef BGT60LTR11XXX_DRIVER_HPP
 #define BGT60LTR11XXX_DRIVER_HPP
 
-#include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include <task.h>
 
