@@ -7,4 +7,4 @@ Here is a list of upcoming actions to take:
 - [x] Add UART Asynchrounous Communication Driver.
 - [x] Add PWM Audio Output Controller.
 - [ ] Add Overall System Driver Class.  
-
+- [ ] Add dual core functionality. 

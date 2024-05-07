@@ -1,6 +1,6 @@
 #ifndef LVGL_HOOKS_H
 #define LVGL_HOOKS_H
-#include <FreeRTOSConfig.h>
+
 #include <FreeRTOS.h>
 #include "board_defines.h"
 

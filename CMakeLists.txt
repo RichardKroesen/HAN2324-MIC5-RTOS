@@ -1,11 +1,25 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.18)
+set(PICO_BOARD pico_w)
+set(PICO_SDK_FETCH_FROM_GIT ON)
+set(NAME MIC5_ASSIGNMENT)
 
-# Change your executable name to something creative!
-set(NAME BlinkLEDExt) # <-- Name your project/executable here!
-
+include(FetchContent)
 include(pico_sdk_import.cmake)
 
-# Gooey boilerplate
+FetchContent_Declare(
+  lvgl
+  GIT_REPOSITORY https://github.com/lvgl/lvgl
+  GIT_TAG        release/v8.3
+  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/lvgl
+)
+
+FetchContent_Declare(
+  lv_drivers
+  GIT_REPOSITORY https://github.com/HCL-Hbot/lv_drivers
+  GIT_TAG release/v8.3
+  SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/lv_drivers
+)
+
 project(${NAME} C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -14,91 +28,36 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 #include Libraries
-SET(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/config" CACHE STRING "Local Config")
+set(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/config" CACHE STRING "Local Config")
 include_directories("${FREERTOS_CONFIG_FILE_DIRECTORY}") 
+set(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_LIST_DIR}/lib/FreeRTOS-Kernel" CACHE STRING "FreeRTOS Kernel Path")
 include(FreeRTOS_Kernel_import.cmake)
+
+add_compile_options(-Wall -Wno-format -Wno-unused-function -Wno-maybe-uninitialized)
 
 add_compile_definitions(
     FREE_RTOS_KERNEL_SMP=1
     portSUPPORT_SMP=1
 )
 
-add_subdirectory(bgt60)
-add_subdirectory(motor_driver)
-add_subdirectory(speaker)
-add_subdirectory(samples)
-add_subdirectory(async_uart)
+# Link to libraries and set target executable
+if (PICO_CYW43_SUPPORTED)
+    if (NOT TARGET pico_cyw43_arch)
+        message("Skipping build as support is not available")
+    else()
+        FetchContent_MakeAvailable(lvgl)
+        FetchContent_MakeAvailable(lv_drivers)
 
-add_subdirectory(src)
+        add_subdirectory(bgt60)
+        add_subdirectory(motor_driver)
+        add_subdirectory(speaker)
+        add_subdirectory(samples)
+        add_subdirectory(async_uart)
 
-# cmake_minimum_required(VERSION 3.18)
-# set(PICO_BOARD pico_w)
-# set(PICO_SDK_FETCH_FROM_GIT ON)
+        add_subdirectory(src)
+    endif ()
+endif()
 
-# # Pull in SDK and initialize
-# include(pico_sdk_import.cmake)
-
-# # Include FreeRTOS and other external projects using FetchContent
-# include(FetchContent)
-
-# FetchContent_Declare(
-#   FreeRTOS
-#   GIT_REPOSITORY https://github.com/FreeRTOS/FreeRTOS-Kernel
-#   GIT_TAG        V11.0.1
-#   SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/FreeRTOS
-# )
-
-# FetchContent_Declare(
-#   lvgl
-#   GIT_REPOSITORY https://github.com/lvgl/lvgl
-#   GIT_TAG        release/v8.3
-#   SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/lvgl
-# )
-
-# FetchContent_Declare(
-#   lv_drivers
-#   GIT_REPOSITORY https://github.com/HCL-Hbot/lv_drivers
-#   GIT_TAG release/v8.3
-#   SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/lv_drivers
-# )
-
-# # Project declaration
-# project(MIC5_ASSIGNMENT C CXX ASM)
-# set(CMAKE_C_STANDARD 11)
-# set(CMAKE_CXX_STANDARD 17)
-# pico_sdk_init()
-
-# # Compiler flags and definitions
-# add_compile_options(-Wall -Wno-format -Wno-unused-function -Wno-maybe-uninitialized)
-
-# add_compile_definitions(
-#   FREE_RTOS_KERNEL_SMP=1
-#   portSUPPORT_SMP=1
-# )
-
-# # Set up include directories and add subdirectories
-# add_subdirectory(bgt60)
-# add_subdirectory(motor_driver)
-# add_subdirectory(speaker)
-# add_subdirectory(samples)
-# add_subdirectory(async_uart)
-
-# # Link to libraries and set target executable
-# if (PICO_CYW43_SUPPORTED)
-#   if (NOT TARGET pico_cyw43_arch)
-#     message("Skipping build as support is not available")
-#   else ()
-#     add_executable(MIC5_ASSIGNMENT "src/main.cpp")
-#     pico_enable_stdio_usb(MIC5_ASSIGNMENT 1)
-#     pico_enable_stdio_uart(MIC5_ASSIGNMENT 0)
-
-#     target_include_directories(MIC5_ASSIGNMENT PUBLIC
-#       ${CMAKE_CURRENT_LIST_DIR}/src
-#       ${CMAKE_CURRENT_LIST_DIR}/bgt60
-#       ${CMAKE_CURRENT_LIST_DIR}/motor_driver
-#       ${CMAKE_CURRENT_LIST_DIR}/speaker
-#       ${CMAKE_CURRENT_LIST_DIR}/async_uart
-#     )
 
 #     # Specify FreeRTOS configuration path
 #     set(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/config" CACHE STRING "Local Config")
@@ -149,13 +108,3 @@ add_subdirectory(src)
 #       hardware_spi
 #       ui
 #     )
-
-#     pico_add_extra_outputs(MIC5_ASSIGNMENT)
-
-#     # Set up files for release packages
-#     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/src/MIC5_ASSIGNMENT.uf2 DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-#     set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
-#     set(CPACK_GENERATOR "ZIP" "TGZ")
-#     include(CPack)
-#   endif ()
-# endif ()
