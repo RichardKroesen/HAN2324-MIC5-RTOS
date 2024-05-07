@@ -76,9 +76,8 @@ void radarReading_task(void *taskvParameters) {
 }
 
 void stepMotor_task(void *Pvarg) {
-    vTaskDelay(1000/portTICK_PERIOD_MS);
     static MOTOR::StepMotorDriver motor{STEP_MOTOR_PIN, DIR_MOTOR_PIN, EN_MOTOR_PIN}; /// (0, 1);
-    motor.initPulseGenerator(0, 30, 100);
+    motor.initPulseGenerator(1, 30, 250);
     motor.rotateAngle(MOTOR::DefaultAngles::ANGLE_90);
     
     while (true)
@@ -170,15 +169,14 @@ int main() {
     // TaskHandle_t core2_task_handle;
 
     xReturned[1] = xTaskCreate(radarReading_task, "RadarReadingTask", 400, NULL, 2, &core1_task_handle);
-    // xReturned[2] = xTaskCreate(stepMotor_task, "MotorTask", 150, NULL, 1, &core1_task_handle);
-    xReturned[3] = xTaskCreate(AudioTask, "AudioTask", 400, NULL, 3, &core1_task_handle);
-    xReturned[4] = xTaskCreate(mainTask, "UARTReceiveTask", 200, NULL, 1, &core1_task_handle); 
-    xReturned[5] = xTaskCreate(uart_send_task, "UARTSendTask", 200, NULL, 3, &core1_task_handle);
+    xReturned[2] = xTaskCreate(stepMotor_task, "MotorTask", 150, NULL, 3, &core1_task_handle);
+    xReturned[3] = xTaskCreate(AudioTask, "AudioTask", 400, NULL, 2, &core1_task_handle);
+    xReturned[4] = xTaskCreate(mainTask, "UARTReceiveTask", 400, NULL, 3, &core1_task_handle); 
+    xReturned[5] = xTaskCreate(uart_send_task, "UARTSendTask", 200, NULL, 2, &core1_task_handle);
 
     vTaskCoreAffinitySet(core1_task_handle, (1 << 0));
-
     xReturned[1] = xTaskCreate(prvLedTask, "Task1", 200, (void *)25, 1, &core1_task_handle);
-    xReturned[0] = xTaskCreate(display_task, "DisplayTask", 900, NULL, 2, &core1_task_handle);
+    xReturned[0] = xTaskCreate(display_task, "DisplayTask", 900, NULL, 3, &core1_task_handle);
 
     vTaskCoreAffinitySet(core1_task_handle, (1 << 1));
     
