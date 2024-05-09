@@ -7,4 +7,18 @@ Here is a list of upcoming actions to take:
 - [x] Add UART Asynchrounous Communication Driver.
 - [x] Add PWM Audio Output Controller.
 - [ ] Add Overall System Driver Class.  
-- [ ] Add dual core functionality. 
+- [X] Add dual core functionality. YES! 
+
+
+# FreeRTOS Features to add: 
+- SW Timer. 
+- xHigherPriorityTaskWoken, Task wake-up from ISR.
+- Deferring Work to the RTOS Daemon Tas
+- Semaphores. 
+- Mutexes and Binary Semaphores. 
+- OR Gatekeepers 
+- Event Groups 
+
+# To Do
+- Add Test Cases.
+- Add Documentation
