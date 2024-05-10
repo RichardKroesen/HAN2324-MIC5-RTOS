@@ -10,6 +10,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "timers.h"
+#include "event_groups.h"
 
 #include <lv_drv_conf.h>
 #include <lvgl.h>
@@ -98,6 +99,12 @@ public:
     TaskManager() {
         driver = new CoreDriver();
         driver->initialize();
+        setup_gpio();
+
+        switch_event_group = xEventGroupCreate();
+        if (switch_event_group == NULL) {
+            printf("Event group creation failed.\n");
+        }
     }
 
     void enableSystem() {
@@ -227,13 +234,33 @@ public:
             gpio_xor_mask(1u << (uint32_t)pvParameters);
         }
     }
+        
+    static void led_control_task(void *params) {
+        const static uint8_t led_pins[IO_DEMO_PINS] = {LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN};
+        const static uint8_t bits_of_interest = 0x0F;
+        EventBits_t bits;
+
+        while (true) {
+            // Wait for any bit to be set here: 
+            bits = xEventGroupWaitBits(switch_event_group, bits_of_interest, pdTRUE, pdFALSE, portMAX_DELAY);
+            
+            for (int i = 0; i < IO_DEMO_PINS; i++) {
+                gpio_put(led_pins[i], (bits & (1 << i)) ? 1 : 0);
+            }
+        }
+    }
 
 private: 
+    /* Class Defaults */
     TaskManager(const TaskManager &other) = delete;
     TaskManager &operator=(const TaskManager &other) = delete;
 
+    /* Driver Variables: */
     CoreDriver* driver;
-    static inline SERIAL::UART_RTOS_Driver uartStreamer{115200, 16, 17};
+    static inline SERIAL::UART_RTOS_Driver uartStreamer{UART_BAUD_RATE, UART_TX_PIN, UART_RX_PIN};
+
+    /* RTOS Variables:*/
+    static inline EventGroupHandle_t switch_event_group = nullptr;
     const static inline uint8_t CORE0 = 0;  
     const static inline uint8_t CORE1 = 1;
 
@@ -241,22 +268,55 @@ private:
         TaskHandle_t task_handle;
 
         driver->addTask(&task_handle, "RadarReadingTask", 400, radarReading_task, NULL, 2);
-        driver->addTask(&task_handle, "MotorTask", stepMotor_task, NULL, 3);
-        driver->addTask(&task_handle, "AudioTask", 400, AudioTask, NULL, 2);
+        driver->addTask(&task_handle, "MotorTask", 400, stepMotor_task, NULL, 1);
+        driver->addTask(&task_handle, "AudioTask", 400, AudioTask, NULL, 1);
         driver->addTask(&task_handle, "UARTReceiveTask", 400, mainTask, NULL, 3);
         driver->addTask(&task_handle, "UARTSendTask", 200, uart_send_task, NULL, 2);
+
         driver->setTaskCore(task_handle, CORE0);
-        driver->addTask(&task_handle, "LedTask", 200, prvLedTask, (void *)25, 1);
-        driver->addTask(&task_handle, "DisplayTask", 900, display_task, NULL, 2);
+        driver->addTask(&task_handle, "LedControlTask", led_control_task, NULL, 2);
+        driver->addTask(&task_handle, "LedTask", prvLedTask, (void *)25, 1);
+        driver->addTask(&task_handle, "DisplayTask", 900, display_task, NULL, 3);
         driver->setTaskCore(task_handle, CORE1);
-        driver->startScheduler();
+    }
+
+    static void gpio_callback(uint gpio, uint32_t events) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        if (gpio == SWITCH1_PIN) {
+            xEventGroupSetBitsFromISR(switch_event_group, 1 << 0, &xHigherPriorityTaskWoken);
+        } else if (gpio == SWITCH2_PIN) {
+            xEventGroupSetBitsFromISR(switch_event_group, 1 << 1, &xHigherPriorityTaskWoken);
+        } else if (gpio == SWITCH3_PIN) {
+            xEventGroupSetBitsFromISR(switch_event_group, 1 << 2, &xHigherPriorityTaskWoken);
+        } else if (gpio == SWITCH4_PIN) {
+            xEventGroupSetBitsFromISR(switch_event_group, 1 << 3, &xHigherPriorityTaskWoken);
+        }
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+
+    void setup_gpio() {
+        const static uint8_t switch_pins[IO_DEMO_PINS] = {SWITCH1_PIN, SWITCH2_PIN, SWITCH3_PIN, SWITCH4_PIN};
+        const static uint8_t led_pins[IO_DEMO_PINS] = {LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN};
+
+        for (uint8_t pin : switch_pins) {
+            gpio_init(pin);
+            gpio_set_dir(pin, GPIO_IN);
+            gpio_pull_up(pin);
+            gpio_set_irq_enabled_with_callback(pin, GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+        }
+
+        for (uint8_t pin : led_pins) {
+            gpio_init(pin);
+            gpio_set_dir(pin, GPIO_OUT);
+            gpio_put(pin, 0);
+        }
     }
 };
 
 }; // End of CONTROLLER namespace.
 
 int main() {
-    CONTROLLER::TaskManager taskManager;
+    CONTROLLER::TaskManager taskManager{};
     taskManager.enableSystem();
     
     for (;;) {

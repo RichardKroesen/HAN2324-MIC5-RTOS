@@ -29,4 +29,21 @@
 /* AUDIO CONTROL PINS */
 #define AUDIO_PIN           11
 
+/* GPIO SETUP */
+#define IO_DEMO_PINS        4  
+#define SWITCH1_PIN         28
+#define SWITCH2_PIN         27
+#define SWITCH3_PIN         26
+#define SWITCH4_PIN         22
+
+#define LED1_PIN            18
+#define LED2_PIN            19
+#define LED3_PIN            20
+#define LED4_PIN            21
+
+/* SERIAL UART PINS */
+#define UART_TX_PIN         16
+#define UART_RX_PIN         17
+#define UART_BAUD_RATE      115200
+
 #endif
