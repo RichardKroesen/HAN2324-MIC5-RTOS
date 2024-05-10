@@ -12,6 +12,7 @@
             "executable": "${command:cmake.launchTargetPath}",
             "servertype": "jlink",
             "device": "RP2040_M0_0",
+            "numberOfProcessors": 2,
             "interface": "swd",
             "runToEntryPoint": "main",
             "svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/rp2040.svd" 

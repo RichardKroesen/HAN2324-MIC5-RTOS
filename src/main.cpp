@@ -240,15 +240,16 @@ private:
     void createTasks() {
         TaskHandle_t task_handle;
 
-        driver->setTaskCore(task_handle, CORE0); 
         driver->addTask(&task_handle, "RadarReadingTask", 400, radarReading_task, NULL, 2);
         driver->addTask(&task_handle, "MotorTask", stepMotor_task, NULL, 3);
         driver->addTask(&task_handle, "AudioTask", 400, AudioTask, NULL, 2);
         driver->addTask(&task_handle, "UARTReceiveTask", 400, mainTask, NULL, 3);
         driver->addTask(&task_handle, "UARTSendTask", 200, uart_send_task, NULL, 2);
-        driver->setTaskCore(task_handle, CORE1);
+        driver->setTaskCore(task_handle, CORE0);
         driver->addTask(&task_handle, "LedTask", 200, prvLedTask, (void *)25, 1);
-        driver->addTask(&task_handle, "DisplayTask", 900, display_task, NULL, 3);
+        driver->addTask(&task_handle, "DisplayTask", 900, display_task, NULL, 2);
+        driver->setTaskCore(task_handle, CORE1);
+        driver->startScheduler();
     }
 };
 
@@ -257,7 +258,7 @@ private:
 int main() {
     CONTROLLER::TaskManager taskManager;
     taskManager.enableSystem();
-
+    
     for (;;) {
         ;
     }
