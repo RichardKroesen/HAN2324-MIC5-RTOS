@@ -48,6 +48,7 @@ target_link_libraries(${NAME}
 
     FreeRTOS-Kernel-Heap4
     
+    APP
     BGT60LTR11XXX
     STEPMOTOR_DRIVER
     SPEAKER_CONTROLLER
@@ -71,6 +72,7 @@ target_include_directories(${NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/motor_driver
     ${CMAKE_CURRENT_LIST_DIR}/speaker
     ${CMAKE_CURRENT_LIST_DIR}/async_uart
+    ${CMAKE_CURRENT_LIST_DIR}/app
 
     ${CMAKE_CURRENT_LIST_DIR}/../lib/lvgl
     ${CMAKE_CURRENT_LIST_DIR}/../lib/lv_drivers

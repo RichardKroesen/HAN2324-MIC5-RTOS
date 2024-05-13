@@ -48,6 +48,7 @@ if (PICO_CYW43_SUPPORTED)
         FetchContent_MakeAvailable(lvgl)
         FetchContent_MakeAvailable(lv_drivers)
 
+        add_subdirectory(app)
         add_subdirectory(bgt60)
         add_subdirectory(motor_driver)
         add_subdirectory(speaker)
