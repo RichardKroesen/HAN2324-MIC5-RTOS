@@ -35,10 +35,10 @@ include(FreeRTOS_Kernel_import.cmake)
 
 add_compile_options(-Wall -Wno-format -Wno-unused-function -Wno-maybe-uninitialized)
 
-add_compile_definitions(
-    FREE_RTOS_KERNEL_SMP=1
-    portSUPPORT_SMP=1
-)
+# add_compile_definitions(
+#     FREE_RTOS_KERNEL_SMP=0
+#     portSUPPORT_SMP=0
+# )
 
 # Link to libraries and set target executable
 if (PICO_CYW43_SUPPORTED)

@@ -6,9 +6,9 @@
 #include "pico/cyw43_arch.h"
 #include "tusb.h"
 
-#if ( mainRUN_ON_CORE == 1 )
-#include "pico/multicore.h"
-#endif
+// #if ( mainRUN_ON_CORE == 1 )
+// #include "pico/multicore.h"
+// #endif
 
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
@@ -165,10 +165,13 @@ public:
     static void prvLedTask(void *pvParameters) {
         TickType_t xNextWakeTime;
         xNextWakeTime = xTaskGetTickCount();
+        char runTimeStatsBuffer[1024];
 
         for( ;; ) {
+            vTaskGetRunTimeStats(runTimeStatsBuffer);
+            printf("Run Time Statistics:\n%s", runTimeStatsBuffer);
             printf("LED Task\n");
-            vTaskDelayUntil( &xNextWakeTime, (1000 / portTICK_PERIOD_MS));
+            vTaskDelayUntil( &xNextWakeTime, (5000 / portTICK_PERIOD_MS));
             gpio_xor_mask(1u << (uint32_t)pvParameters);
         }
     }
@@ -210,10 +213,11 @@ private:
         driver->addTask(&task_handle, "AudioTask", 400, AudioTask, NULL, 1);
         driver->addTask(&task_handle, "UARTReceiveTask", 400, mainTask, NULL, 3);
         driver->addTask(&task_handle, "UARTSendTask", 200, uart_send_task, NULL, 2);
+        driver->addTask(&task_handle, "LedTask", 1250, prvLedTask, (void *)25, 2);
 
         driver->setTaskCore(task_handle, CORE0);
         driver->addTask(&task_handle, "LedControlTask", led_control_task, NULL, 2);
-        driver->addTask(&task_handle, "LedTask", prvLedTask, (void *)25, 1);
+        // driver->addTask(&task_handle, "LedTask", 1250, prvLedTask, (void *)25, 1);
         driver->addTask(&task_handle, "DisplayTask", 900, display_task, NULL, 3);
         driver->setTaskCore(task_handle, CORE1);
     }

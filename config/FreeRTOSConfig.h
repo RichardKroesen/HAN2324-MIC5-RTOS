@@ -48,7 +48,7 @@
 
 /* Scheduler Related */
 #define configUSE_PREEMPTION                    1
-#define configUSE_TICKLESS_IDLE                 0
+#define configUSE_TICKLESS_IDLE                 1
 #define configUSE_IDLE_HOOK                     0
 #define configUSE_TICK_HOOK                     0
 #define configCPU_CLOCK_HZ                      125000000   // 125MHz for RP2040
@@ -89,9 +89,9 @@
 #define configUSE_DAEMON_TASK_STARTUP_HOOK      0
 
 /* Run time and task stats gathering related definitions. */
-#define configGENERATE_RUN_TIME_STATS           0
+#define configGENERATE_RUN_TIME_STATS           1
 #define configUSE_TRACE_FACILITY                1
-#define configUSE_STATS_FORMATTING_FUNCTIONS    0
+#define configUSE_STATS_FORMATTING_FUNCTIONS    1
 
 /* Co-routine related definitions. */
 #define configUSE_CO_ROUTINES                   0
@@ -148,5 +148,20 @@ to exclude the API function. */
 #define INCLUDE_xQueueGetMutexHolder            1
 
 /* A header file that defines trace macro can be included here. */
+
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+uint64_t time_us_64();  // "hardware/timer.h"
+
+#define RUN_TIME_STAT_time_us_64Divider 1000            // stat granularity is mS
+#define portGET_RUN_TIME_COUNTER_VALUE() (time_us_64()/RUN_TIME_STAT_time_us_64Divider)  // runtime counter in mS
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FREERTOS_CONFIG_H */

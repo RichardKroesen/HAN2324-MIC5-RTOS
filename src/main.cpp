@@ -3,7 +3,7 @@
 int main() {
     CONTROLLER::TaskManager taskManager{};
     taskManager.enableSystem();
-    
+
     for (;;);
     return 0;
 }
